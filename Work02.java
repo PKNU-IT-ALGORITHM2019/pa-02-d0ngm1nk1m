@@ -10,17 +10,18 @@ public class Work02 {
     static MyPoint []mp;
     static MyOrder []mo;
     static double lowCost;
+    static int []order;
     
     public static void main(String[] args) {
+        
         for(int i = 0; i < 7; i++) {
+            lowCost = 0;
             long start_time = System.currentTimeMillis();
             read("input" + i + ".txt");
-            lowCost = 200;
-            tsp(1);
+            tsp(1, 0);
             long end_time = System.currentTimeMillis();
             Print(lowCost);
             System.out.println("걸린 시간: " + (end_time - start_time)/1000.0);
-            
         }
         
     }
@@ -31,6 +32,8 @@ public class Work02 {
             Num = inFile.nextInt();
             mp = new MyPoint[Num]; // 모든 점들의 배열
             mo = new MyOrder[Num+1]; // 순서들을 모은 배열
+            order = new int[Num+1];
+            
             for(int i = 0; i < Num; i++) {
                 mp[i] = new MyPoint();
                 mp[i].x = inFile.nextInt();
@@ -39,7 +42,6 @@ public class Work02 {
                 mo[i].num = i;
             }
             mo[Num] = new MyOrder();
-            
             inFile.close();
         } catch (FileNotFoundException e) {
             System.out.println("No file");
@@ -47,29 +49,30 @@ public class Work02 {
         }
     }
     
-    public static void tsp(int node){
+    public static void tsp(int node,double sum){
         
-        if(node == Num - 1) {
-            double sum = 0;
-            for(int i = 0; i < Num; i++) {
-                sum += dist(mo[i].num, mo[i+1].num);
-                if(lowCost <= sum)
-                    return;
-                if(i == Num-1)
-                    lowCost = min(lowCost,sum);
+        if(lowCost != 0 && lowCost <= sum)
+            return;
+        
+        if(node == Num) {
+            sum += dist(mo[node-1].num, 0);
+            if(lowCost == 0) {
+                lowCost = sum;
+                for(int i = 1; i < Num; i++)
+                    order[i] = mo[i].num;
             }
+            lowCost = min(lowCost,sum);
             return;
         }
         
         for(int i = node; i < Num; i++) {
-            swap(mo,node,i);
-            tsp(node+1);
-            swap(mo,node,i);
+            swap(node,i);
+            tsp(node + 1,sum + dist(mo[node-1].num,mo[node].num));
+            swap(node,i);
         }
-        
     }
     
-    public static void swap(MyOrder []mo, int num1, int num2) {
+    public static void swap(int num1, int num2) {
         
         int tmp = mo[num1].num;
         mo[num1].num = mo[num2].num;
@@ -81,8 +84,8 @@ public class Work02 {
         
         if(m1 <= m2)
             return m1;
-        for(int i = 0; i < Num; i++)
-            mo[i].r_num = mo[i].num;
+        for(int i = 1; i < Num; i++)
+            order[i] = mo[i].num;
         return m2;
         
     }
@@ -93,9 +96,9 @@ public class Work02 {
         System.out.print("[");
         
         for(int i = 0; i < Num - 1; i++)
-            System.out.print(mo[i].r_num + ", ");
+            System.out.print(order[i] + ", ");
         
-        System.out.println(mo[Num-1].r_num + "]");
+        System.out.println(order[Num - 1] + "]");
     }
     
     public static double dist(int n1,int n2) {
